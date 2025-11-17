@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="AG_01.McpServer/AG_01.McpServer.csproj" />
+  <Project Path="AG_01/AG_01.csproj" />
+</Solution>
