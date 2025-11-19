@@ -5,12 +5,14 @@
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <UserSecretsId>AG_01-7a9f3e1b-4d2c-4f1a-8e5d-2b3c4f5a6b7c</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Agents.AI" Version="1.0.0-preview.251114.1" />
     <PackageReference Include="Microsoft.Agents.AI.OpenAI" Version="1.0.0-preview.251114.1" />
     <PackageReference Include="ModelContextProtocol" Version="0.4.0-preview.3" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="10.0.0" />
   </ItemGroup>
 
 </Project>

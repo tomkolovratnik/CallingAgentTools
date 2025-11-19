@@ -37,6 +37,7 @@ namespace AG_01
        
             return await agent.RunAsync("What is the weather like in Prague?").ConfigureAwait(false);
         }
+
         [Description("Get the weather for a given location.")]
         static string GetWeather([Description("The location to get the weather for.")] string location)
         => $"The weather in {location} is cloudy with a high of 15°C.";

@@ -11,16 +11,13 @@ namespace AG_01.McpServer
         {
             var builder = Host.CreateEmptyApplicationBuilder(settings: null);
 
-       
             var env = builder.Environment;
-            builder.Configuration
-                .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
-                .AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true, reloadOnChange: true);
 
-            if (env.IsDevelopment())
-            {
-                builder.Configuration.AddUserSecrets<Program>(optional: true);
-            }
+            //builder.Configuration
+            //    .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
+            //    .AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true, reloadOnChange: true);
+
+            builder.Configuration.AddUserSecrets<Program>(optional: true);
 
             builder.Configuration
                 .AddEnvironmentVariables()        // All environment variables
@@ -32,6 +29,15 @@ namespace AG_01.McpServer
                 .WithToolsFromAssembly();
 
             var app = builder.Build();
+
+            // Načtení API_KEY z konfigurace a předání do WeatherMcpServer
+            var apiKey = app.Services.GetRequiredService<IConfiguration>()["OPENWEATHER_API_KEY"];
+            if (string.IsNullOrEmpty(apiKey))
+            {
+                throw new InvalidOperationException("OPENWEATHER_API_KEY není nastavena v user secrets nebo konfiguraci");
+            }
+            WeatherMcpServer.API_KEY = apiKey;
+
             await app.RunAsync();
         }
     }

@@ -1,11 +1,7 @@
 ﻿using AG_01.McpServer.Classes;
 using ModelContextProtocol.Server;
 using System;
-using System.Buffers.Text;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Net.Http;
-using System.Text;
 using System.Text.Json;
 
 namespace AG_01.McpServer
@@ -13,20 +9,17 @@ namespace AG_01.McpServer
     [McpServerToolType()]
     public class WeatherMcpServer
     {
-        public static readonly HttpClient httpClient = new();
         private const string BASE_URL = "https://api.openweathermap.org/data/2.5";
 
-        [McpServerTool, Description("Získá aktuální počasí pro zadané město.")]
-       
-        static async Task<string> GetCurrentWeather(int requestId, JsonElement arguments, CancellationToken ct)
-        {
-            var city = arguments.GetProperty("city").GetString();
-            var country = arguments.TryGetProperty("country", out var countryProp) ? countryProp.GetString() : "";
+        public static readonly HttpClient httpClient = new();
 
-            var location = string.IsNullOrEmpty(country) ? city : $"{city},{country}";
+        [McpServerTool, Description("Gets the current weather for the specified city.")]
+        public static async Task<string> GetCurrentWeather([Description("Weather request parameters")] CurrentWeatherParameters parameters, CancellationToken ct)
+        {
+            var location = string.IsNullOrEmpty(parameters.Country) ? parameters.City : $"{parameters.City},{parameters.Country}";
             var url = $"{BASE_URL}/weather?q={location}&appid={API_KEY}&units=metric";
 
-            var response = await httpClient.GetStringAsync(url, ct);
+            var response = await httpClient.GetStringAsync(url, ct).ConfigureAwait(false);
             ct.ThrowIfCancellationRequested();
             var weatherData = JsonSerializer.Deserialize<WeatherResponse>(response);
 
@@ -39,22 +32,20 @@ namespace AG_01.McpServer
             return result;
         }
 
-        public static async Task<string> GetWeatherForecast(int requestId, JsonElement arguments, CancellationToken ct)
+        [McpServerTool, Description("Gets the forecast weather for the specified city.")]
+        public static async Task<string> GetWeatherForecast([Description("Forecast request parameters")] ForecastParameters parameters, CancellationToken ct)
         {
-            var city = arguments.GetProperty("city").GetString();
-            var days = arguments.TryGetProperty("days", out var daysProp) ? daysProp.GetInt32() : 3;
+            var url = $"{BASE_URL}/forecast?q={parameters.City}&appid={API_KEY}&units=metric&cnt={parameters.Days * 8}"; // 8 forecasts per day
 
-            var url = $"{BASE_URL}/forecast?q={city}&appid={API_KEY}&units=metric&cnt={days * 8}"; // 8 forecasts per day
-
-            var response = await httpClient.GetStringAsync(url, ct);
+            var response = await httpClient.GetStringAsync(url, ct).ConfigureAwait(false);
             ct.ThrowIfCancellationRequested();
             var forecastData = JsonSerializer.Deserialize<ForecastResponse>(response);
 
-            var result = $"Předpověď počasí pro {forecastData.City.Name} ({days} dny):\n\n";
+            var result = $"Předpověď počasí pro {forecastData.City.Name} ({parameters.Days} dny):\n\n";
 
             var dailyForecasts = forecastData.List
                 .GroupBy(f => DateTime.Parse(f.DtTxt).Date)
-                .Take(days);
+                .Take(parameters.Days);
 
             foreach (var dayGroup in dailyForecasts)
             {
@@ -66,5 +57,7 @@ namespace AG_01.McpServer
 
             return result;
         }
+
+        public static string? API_KEY { get; set; }
     }
 }
